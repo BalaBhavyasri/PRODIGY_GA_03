@@ -74,17 +74,6 @@ Configurable context size
 Randomized text generation
 Lightweight and easy to understand
 
-📂 Project Structure
-Task-03-Markov-Text-Generation/
-│
-├── data/
-│   └── corpus.txt
-│
-├── markov_text_generator.py
-├── requirements.txt
-└── README.md
-🚀 Installation
-
 Clone the repository:
 
 git clone <YOUR-GITHUB-REPOSITORY-LINK>
