@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markov Chain Text Synthesizer</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="cyber-background-grid"></div>
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+    <div class="container">
+        <!-- Main Header -->
+        <header class="app-header">
+            <div class="branding">
+                <i class="fa-solid fa-code-branch neon-pulse-icon"></i>
+                <div class="branding-text">
+                    <h1>SYNTHESIS.EXE</h1>
+                    <p>Markov Chain Language Engine</p>
+                </div>
+            </div>
+            <div class="stats-counter-bar">
+                <div class="mini-stat"><span class="lbl">Vocab:</span> <span id="statVocab" class="val">0</span></div>
+                <div class="mini-stat"><span class="lbl">States:</span> <span id="statStates" class="val">0</span></div>
+                <div class="mini-stat"><span class="lbl">Transitions:</span> <span id="statTransitions" class="val">0</span></div>
+            </div>
+        </header>
+        <!-- SECTION 01: Training Corpus Setup -->
+        <section class="section-card glass" id="section-training">
+            <div class="section-badge">01</div>
+            
+            <!-- Chain Order Tabs (Screenshot 1 Aligned) -->
+            <div class="chain-order-tabs-wrapper">
+                <span class="tabs-label">Markov Chain Order:</span>
+                <div class="chain-order-tabs">
+                    <button class="order-tab" data-val="1">1st</button>
+                    <button class="order-tab active" data-val="2">2nd</button>
+                    <button class="order-tab" data-val="3">3rd</button>
+                    <button class="order-tab" data-val="4">4th</button>
+                </div>
+            </div>
+            <div class="section-header-text">
+                <h2>Preset Training Texts</h2>
+                <p>Select a corpus preset or enter your custom training text</p>
+            </div>
+            <!-- Preset Cards Grid -->
+            <div class="preset-cards-grid">
+                <div class="preset-card active" data-preset="shakespeare">
+                    <i class="fa-solid fa-masks-theater card-icon text-pink"></i>
+                    <span class="card-title">Shakespeare</span>
+                </div>
+                <div class="preset-card" data-preset="science">
+                    <i class="fa-solid fa-microscope card-icon text-cyan"></i>
+                    <span class="card-title">Science</span>
+                </div>
+                <div class="preset-card" data-preset="news">
+                    <i class="fa-solid fa-newspaper card-icon text-blue"></i>
+                    <span class="card-title">News Style</span>
+                </div>
+                <div class="preset-card" data-preset="poetry">
+                    <i class="fa-solid fa-seedling card-icon text-purple"></i>
+                    <span class="card-title">Poetry</span>
+                </div>
+                <div class="preset-card" data-preset="tech">
+                    <i class="fa-solid fa-laptop card-icon text-orange"></i>
+                    <span class="card-title">Technology</span>
+                </div>
+                <div class="preset-card" data-preset="custom">
+                    <i class="fa-solid fa-pencil card-icon text-pink"></i>
+                    <span class="card-title">Custom</span>
+                </div>
+            </div>
+            <!-- Training Text Input -->
+            <div class="training-input-container">
+                <span class="input-label-tag">Training Text</span>
+                <div class="textarea-wrapper">
+                    <textarea id="corpusText" placeholder="Select a preset or input your text here..."></textarea>
+                    <div class="textarea-footer">
+                        <span id="corpusStats">0 characters • 0 words</span>
+                        <button id="clearCorpusBtn" class="clear-btn" title="Clear text"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                </div>
+            </div>
+            <!-- Model Hyperparams Overlay inside training -->
+            <div class="hyperparams-inline-row">
+                <div class="inline-control">
+                    <label for="tokenMode">Tokenization Level:</label>
+                    <select id="tokenMode">
+                        <option value="word" selected>Word-based</option>
+                        <option value="char">Character-based (Letters)</option>
+                    </select>
+                </div>
+                <div class="inline-control checkbox-control">
+                    <label class="neon-checkbox">
+                        <input type="checkbox" id="normalizePunct" checked>
+                        <span class="checkmark"></span>
+                        Normalize Punctuation
+                    </label>
+                </div>
+                <div class="inline-control checkbox-control">
+                    <label class="neon-checkbox">
+                        <input type="checkbox" id="caseSens">
+                        <span class="checkmark"></span>
+                        Case Sensitive
+                    </label>
+                </div>
+            </div>
+            <!-- Train Action Button -->
+            <button id="trainModelBtn" class="btn btn-neon-pink">
+                <span>🚀 Train Model</span>
+            </button>
+        </section>
+        <!-- SECTION 02: Generate Text -->
+        <section class="section-card glass" id="section-generate">
+            <div class="section-badge">02</div>
+            <div class="section-header-text">
+                <h2>Generate Text</h2>
+                <p>Create new text sequences using your trained model</p>
+            </div>
+            <div class="generate-layout-grid">
+                <!-- Parameters form -->
+                <div class="generate-form-controls">
+                    <!-- Output Length Slider -->
+                    <div class="form-row">
+                        <div class="row-header">
+                            <label>Output Length</label>
+                            <span id="lengthVal" class="row-value-badge">80 words</span>
+                        </div>
+                        <div class="slider-wrapper">
+                            <input type="range" id="outputLength" min="10" max="300" step="5" value="80">
+                        </div>
+                    </div>
+                    <!-- Number of Variants Selector -->
+                    <div class="form-row">
+                        <label>Number of Variants</label>
+                        <div class="variants-toggle-grid">
+                            <button class="variant-btn active" data-val="1">1</button>
+                            <button class="variant-btn" data-val="3">3</button>
+                            <button class="variant-btn" data-val="5">5</button>
+                        </div>
+                    </div>
+                    <!-- Temperature Slider -->
+                    <div class="form-row">
+                        <div class="row-header">
+                            <label>Temperature (Creativity)</label>
+                            <span id="tempVal" class="row-value-badge">0.7</span>
+                        </div>
+                        <div class="slider-wrapper">
+                            <input type="range" id="temperature" min="0.1" max="2.0" step="0.05" value="0.7">
+                        </div>
+                    </div>
+                    <!-- Seed Text -->
+                    <div class="form-row">
+                        <label for="seedInput">Seed Text (optional)</label>
+                        <input type="text" id="seedInput" placeholder="Start with a word or phrase...">
+                    </div>
+                    <!-- Actions -->
+                    <div class="action-buttons-row">
+                        <button id="generateBtn" class="btn btn-neon-cyan">
+                            <span>✨ Generate Text</span>
+                        </button>
+                        <button id="downloadBtn" class="btn btn-neon-outline" disabled>
+                            <span><i class="fa-solid fa-download"></i> Download</span>
+                        </button>
+                    </div>
+                </div>
+                <!-- Animated Status Robot -->
+                <div class="status-avatar-wrapper">
+                    <div class="cyber-avatar glass">
+                        <!-- Custom SVG Robot indicating state -->
+                        <svg id="robotSvg" viewBox="0 0 100 100" width="80" height="80">
+                            <!-- Ears -->
+                            <rect x="18" y="42" width="6" height="16" rx="2" fill="#7b2cbf" />
+                            <rect x="76" y="42" width="6" height="16" rx="2" fill="#7b2cbf" />
+                            <!-- Antenna -->
+                            <line x1="50" y1="30" x2="50" y2="15" stroke="#7b2cbf" stroke-width="4" stroke-linecap="round"/>
+                            <circle id="antennaDot" cx="50" cy="12" r="6" fill="#00f0ff" />
+                            <!-- Face/Head -->
+                            <rect x="24" y="30" width="52" height="40" rx="10" fill="#141724" stroke="#7b2cbf" stroke-width="3" />
+                            <!-- Screen -->
+                            <rect x="30" y="36" width="40" height="24" rx="4" fill="#0c0d12" stroke="rgba(0,240,255,0.2)" stroke-width="1" />
+                            <!-- Eyes -->
+                            <ellipse id="eyeL" cx="42" cy="46" rx="5" ry="5" fill="#00f0ff" />
+                            <ellipse id="eyeR" cx="58" cy="46" rx="5" ry="5" fill="#00f0ff" />
+                            <!-- Mouth -->
+                            <path id="mouth" d="M 42 56 Q 50 62 58 56" fill="transparent" stroke="#00f0ff" stroke-width="3" stroke-linecap="round" />
+                        </svg>
+                        <span id="avatarStatusLabel" class="avatar-status-label">READY</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Variants Output Workspace -->
+            <div id="outputsWrapper" class="outputs-wrapper hidden">
+                <div class="outputs-header">
+                    <h3>Generated Outputs</h3>
+                    <button id="copyAllBtn" class="btn btn-small btn-neon-outline"><i class="fa-solid fa-copy"></i> Copy All</button>
+                </div>
+                <div id="variantsGrid" class="variants-grid">
+                    <!-- Dynamic Output cards appear here -->
+                </div>
+            </div>
+        </section>
+        <!-- SECTION 03: Chain Visualization -->
+        <section class="section-card glass" id="section-visualization">
+            <div class="section-badge">03</div>
+            <div class="section-header-text">
+                <h2>Chain Visualization</h2>
+                <p>Explore the learned state transitions</p>
+            </div>
+            <div class="visualization-controls-row">
+                <div class="search-box-wrapper">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" id="nodeSearchInput" placeholder="Search for a state/word...">
+                </div>
+                <div class="vis-filter-buttons">
+                    <button id="topStatesBtn" class="btn btn-small btn-neon-outline active">Top 10 States</button>
+                    <button id="showMatrixBtn" class="btn btn-small btn-neon-outline">Show Matrix</button>
+                </div>
+            </div>
+            <!-- Visualization Workspace -->
+            <div class="graph-workspace-container">
+                <canvas id="visualCanvas"></canvas>
+                <!-- Spiderweb overlay decoration -->
+                <div class="spiderweb-decoration">
+                    <i class="fa-solid fa-spider"></i>
+                </div>
+                <!-- Interactive Stepper Panel Embedded inside viz -->
+                <div class="stepper-overlay glass hidden" id="stepperOverlay">
+                    <div class="stepper-header">
+                        <h4>Prefix Sampler: <span id="activePrefixText" class="text-cyan">"..."</span></h4>
+                        <button id="closeStepperBtn" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div class="stepper-body" id="stepperBody">
+                        <!-- Option pills to step through manual sampling -->
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- SECTION 04: How It Works Concept Flashcards -->
+        <section class="section-card glass" id="section-flashcards">
+            <div class="section-badge">04</div>
+            <div class="section-header-text">
+                <h2>How It Works: Markov Concept Cards</h2>
+                <p>Click on the cards below to flip them and learn the mathematics and logic of predicting character/word probabilities based on the previous ones.</p>
+            </div>
+            
+            <div class="flashcards-deck">
+                <!-- Card 1: Core Concept -->
+                <div class="flashcard-container" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard">
+                        <div class="card-front">
+                            <i class="fa-solid fa-brain flash-icon text-cyan"></i>
+                            <h3>Markov Core</h3>
+                            <p>What is a Markov Chain?</p>
+                            <span class="tap-hint">Click to Flip <i class="fa-solid fa-arrows-rotate"></i></span>
+                        </div>
+                        <div class="card-back">
+                            <h4>Statistical Dependency</h4>
+                            <p>A Markov Chain is a model where the probability of the next event (character/word) depends <strong>only</strong> on the current state prefix, disregarding all older history.</p>
+                            <div class="math-formula">P(X_t | X_{t-1}, ..., X_1) = P(X_t | X_{t-1})</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card 2: Previous Ones (Order) -->
+                <div class="flashcard-container" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard">
+                        <div class="card-front">
+                            <i class="fa-solid fa-list-ol flash-icon text-pink"></i>
+                            <h3>Previous One(s)</h3>
+                            <p>How does the chain Order work?</p>
+                            <span class="tap-hint">Click to Flip <i class="fa-solid fa-arrows-rotate"></i></span>
+                        </div>
+                        <div class="card-back">
+                            <h4>Chain History Size</h4>
+                            <p>The "Order" defines the prefix length of "previous ones" used to look up probabilities.
+                            <br>• <strong>1st Order</strong>: predicts based on 1 previous item.
+                            <br>• <strong>3rd Order</strong>: predicts based on 3 previous items.</p>
+                            <div class="math-formula">Prefix Window = Order (N)</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card 3: Word vs Char -->
+                <div class="flashcard-container" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard">
+                        <div class="card-front">
+                            <i class="fa-solid fa-scissors flash-icon text-blue"></i>
+                            <h3>Word vs Character</h3>
+                            <p>How does tokenization level impact text?</p>
+                            <span class="tap-hint">Click to Flip <i class="fa-solid fa-arrows-rotate"></i></span>
+                        </div>
+                        <div class="card-back">
+                            <h4>Tokens & Vocab</h4>
+                            <p>• <strong>Word-based</strong>: Computes word probabilities. Sentences are more coherent but need a large training set.
+                            <br>• <strong>Char-based</strong>: Computes character letter probabilities. Learns spelling and invents words, but takes longer to form valid syntax.</p>
+                            <div class="math-formula">"t-h-e" → "o" vs "the" → "theory"</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card 4: Probabilities Math -->
+                <div class="flashcard-container" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard">
+                        <div class="card-front">
+                            <i class="fa-solid fa-calculator flash-icon text-purple"></i>
+                            <h3>Probability Math</h3>
+                            <p>How are rules computed?</p>
+                            <span class="tap-hint">Click to Flip <i class="fa-solid fa-arrows-rotate"></i></span>
+                        </div>
+                        <div class="card-back">
+                            <h4>Relative Frequencies</h4>
+                            <p>The probability of word \(W_t\) following prefix \(P\) is:
+                            <br>\[P(W_t | P) = \frac{\text{Count}(P + W_t)}{\text{Total Count}(P)}\]
+                            If "the theory" is followed by "of" 8 times out of 10, the probability is 80%.</p>
+                            <div class="math-formula">Count(P + Next) / Count(P)</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card 5: Softmax Temperature -->
+                <div class="flashcard-container" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard">
+                        <div class="card-front">
+                            <i class="fa-solid fa-fire flash-icon text-orange"></i>
+                            <h3>Temperature</h3>
+                            <p>How do we scale random choice?</p>
+                            <span class="tap-hint">Click to Flip <i class="fa-solid fa-arrows-rotate"></i></span>
+                        </div>
+                        <div class="card-back">
+                            <h4>Sampling Distribution</h4>
+                            <p>Adjusts probabilities using: \(w_i = c_i^{1/T}\).
+                            <br>• <strong>Low T (< 0.5)</strong>: Highly deterministic (only highest probability choice).
+                            <br>• <strong>High T (> 1.2)</strong>: Highly random (flattens probability distribution).</p>
+                            <div class="math-formula">Softmax exponent = 1 / T</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    <!-- Slide-Down Transition Matrix Modal -->
+    <div id="matrixModal" class="modal-overlay hidden">
+        <div class="modal-content glass scroll-styled">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-table-list text-pink"></i> Full Transition Matrix Rules</h2>
+                <button id="closeMatrixBtn" class="btn btn-icon"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-search">
+                <input type="text" id="modalSearchInput" placeholder="Filter prefix keys...">
+            </div>
+            <div class="modal-body">
+                <table class="cyber-table">
+                    <thead>
+                        <tr>
+                            <th>Prefix State</th>
+                            <th>Transitions & Absolute Counts</th>
+                            <th>Total Traversed</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modalTableBody">
+                        <tr>
+                            <td colspan="3" class="text-center text-muted">Train the model to compile the transition table.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- UI Toast Alert -->
+    <div id="toast" class="toast hidden">Initialized</div>
+    <script src="app.js" defer></script>
+</body>
+</html>
